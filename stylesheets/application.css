@@ -1,0 +1,898 @@
+/* Téma NAHRÁDZA core application.css → musí ho importovať ako prvé */
+@import url("../../application.css");
+
+/* ==========================================================================
+   Previo Purple — FIALOVÁ VARIANTA témy `previo` pre Redmine 6.1
+   (návrh 2026-08-10; varianta loga A = biele monochromatické na fialovej ploche)
+
+   Je to samostatná, plná kópia témy `previo` — nič z nej neimportuje, takže obe témy
+   sa dajú prepínať v Administration → Settings → Display → Theme a navzájom sa
+   neovplyvňujú. Zmenené voči červenej téme:
+   - fialová brand paleta (#6D29A0 hlavička, #4E1C74 horná lišta, #8A4FB8 akcent),
+   - logo je BIELA monochromatická značka priamo na fialovej ploche (bez bielej dlaždice),
+   - vyhľadávacie pole má fialovú lupu aj fialový text,
+   - „Jump to a project" je priesvitné biele tlačidlo (nie plná tmavšia plocha).
+   Zvyšok (rozmery, formuláre, filtre, tabuľky, sémantické farby hlášok) je identický
+   s témou `previo` — ak sa tam niečo opraví, oprav to aj tu.
+
+   Tokeny a vizuál komponentov z @previo/design-system:
+   - radius 8px, výška polí: quasar.variables.scss, quasar.custom.scss
+   - tlačidlá: PBtn.vue (primary plné, secondary outline s inset hover)
+   Fialová = značka a akcie; obsahové odkazy v info modrej (menej hluku).
+   ========================================================================== */
+
+/* --- Font: Inter Variable (z design systému) --- */
+@font-face {
+  font-family: "Inter";
+  src: url("../fonts/InterVariable.woff2") format("woff2");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+:root {
+  --fonts-main: "Inter", "Noto Sans", sans-serif;
+
+  /* FIALOVÁ brand paleta (previo-purple).
+     Zámerne prebíja tokeny `--previo-primary*`, ktoré v pôvodnej téme držali červenú —
+     tým sa naraz prefarbí všetko, čo je „brandové": hlavička, navigácia, primárne tlačidlá,
+     focus polí, aktívna záložka, kontextové menu. Sémantické farby (zelená/oranžová/červená
+     v hláškach a prioritách) zostávajú nedotknuté, aby si stavy udržali svoj význam. */
+  --previo-primary: #6D29A0;             /* hlavná lišta hlavičky */
+  --previo-primary-dark: #4E1C74;        /* horný utility pruh, hover plných plôch */
+  --previo-primary-light: #8A4FB8;       /* hover/akcent stavy */
+  --previo-primary-transparent: #F2E7F9; /* jemný podklad (focus, vybraná položka) */
+  /* stlmená fialová pre neaktívne položky menu na tmavom pruhu */
+  --previo-primary-muted: #DCC6EF;
+
+  --previo-positive: #1B6422;
+  --previo-positive-light: #5EBA67;
+  --previo-positive-transparent: #D9E7DA;
+
+  --previo-warning: #FF6D0A;
+  --previo-warning-dark: #8E3A00;
+  --previo-warning-transparent: #FFE8D8;
+
+  --previo-negative: #A30000;
+  --previo-negative-dark: #8F0000;
+  --previo-negative-transparent: #F0D6D6;
+
+  --previo-info: #00557F;
+  --previo-info-state: #0087C8;
+  --previo-info-transparent: #D6E4EB;
+
+  --previo-black: #0A0A0A;
+  --previo-grey50: #FAFAFA;
+  --previo-grey100: #F2F2F2;
+  --previo-grey200: #E5E5E5;
+  --previo-grey300: #CCCCCC;
+  --previo-grey400: #B2B2B2;
+  --previo-grey500: #515151;
+  --previo-grey600: #202124;
+
+  /* tokeny komponentov (quasar.variables / quasar.custom) */
+  --previo-radius: 8px;
+  --previo-radius-sm: 4px;
+  /* jednotná výška všetkých formulárových polí — rovnaká ako majú filtre v zoznamoch,
+     takže celá aplikácia drží jeden rytmus (pôvodne 36 px, čo pôsobilo nafúknuto) */
+  --previo-field-height: 30px;
+  --previo-select-height: 30px;
+  /* tlačidlá majú v celej aplikácii len DVE výšky (rozhodnutie 2026-08-10):
+     34 px = primárna akcia (Submit, Create, Save, Add comment),
+     30 px = sekundárne tlačidlá (Edit, Log time, Watch, Copy, výber súborov…) = rovnako ako polia */
+  --previo-btn-height: 34px;
+  --previo-btn-height-sm: 30px;
+}
+
+body { color: var(--previo-black); }
+
+/* ==========================================================================
+   1. Hlavička a navigácia — jediné veľké fialové plochy
+   ========================================================================== */
+/* HLAVIČKA (návrh 2026-08-06)
+   Dve lišty: tmavšia horná (navigácia + účet) a hlavná fialová s brandom, vyhľadávaním
+   a prepínačom projektu. Banner (diagonálna grafika) je zámerne zrušený — plochá fialová.
+
+   Ikony sú inline SVG v `data:` URI, aby téma nezávisela od fingerprintovaných ciest
+   k ikonovému spritu jadra (`/assets/icons-<hash>.svg`), ktorý sa pri každom precompile mení. */
+
+/* ---------- horná lišta (utility pruh) ---------- */
+#top-menu {
+  background: var(--previo-primary-dark);
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  min-height: 34px;
+  padding: 0 16px;
+  box-sizing: border-box;
+}
+/* DOM poradie je #account, #loggedas, ul(navigácia) → poradím to na navigácia | účet vpravo */
+#top-menu > ul { order: 1; display: flex; align-items: center; gap: 20px; margin: 0; padding: 0; list-style: none; float: none; }
+#top-menu > ul li { margin: 0; }
+#top-menu #loggedas { order: 2; margin-left: auto; display: inline-flex; align-items: center; gap: 7px; float: none; padding: 0; }
+#top-menu #account { order: 3; float: none; }
+#top-menu #account ul { display: flex; align-items: center; gap: 20px; margin: 0; padding: 0; list-style: none; }
+#top-menu #account li { margin: 0; }
+/* poradie podľa návrhu: My account, zvonček, Sign out (v DOM je zvonček posledný) */
+#top-menu #account li:has(.notification-filter) { order: 2; }
+#top-menu #account li:has(.logout) { order: 3; }
+/* Navigačné odkazy sú stlmene fialové (#DCC6EF), aby na tmavom pruhu neprekričali
+   biely názov v hlavnej lište; meno používateľa a účet zostávajú biele.
+   Hover = akcentová fialová pilulka s bielym textom (samotný text #8A4FB8 by bol
+   na pozadí #4E1C74 tmavší než pôvodný, teda nečitateľný). */
+#top-menu a {
+  color: var(--previo-primary-muted);
+  font-size: 0.8125rem;
+  /* priestor pre hover pilulku, aby text neležal na jej hrane */
+  padding: 3px 7px;
+  margin: 0 -7px;   /* záporný okraj → medzery medzi položkami zostávajú ako pred pridaním paddingu */
+}
+#top-menu #loggedas, #top-menu label { color: #fff; }
+#top-menu #loggedas > a, #top-menu #account a { color: #fff; }
+#top-menu a:hover {
+  color: #fff;
+  background-color: var(--previo-primary-light);
+  border-radius: var(--previo-radius-sm);
+  text-decoration: none;
+}
+/* Ikonový odkaz (zvonček) je z hover pilulky vyňatý: nemá text, pilulka by bola len škvrna.
+   `padding: 0` je tu POVINNÉ — zvonček skrýva svoj text cez `width: 18px; overflow: hidden;
+   text-indent: 110%`, a text-indent sa počíta z VNÚTORNEJ šírky. Padding by ju zmenšil
+   na 4 px, odsun textu by prestal stačiť a vedľa zvončeka by vykuklo „Notification filter". */
+#top-menu #account .notification-filter { padding: 0; margin: 0; }
+#top-menu #account .notification-filter:hover { background-color: transparent; }
+
+/* „Logged in as" skryjeme (necháme len meno) a pred meno dáme ikonu používateľa.
+   Text zostáva v DOM pre čítačky obrazovky. */
+#top-menu #loggedas { font-size: 0; }
+#top-menu #loggedas > a { font-size: 0.8125rem; }
+#top-menu #loggedas::before {
+  content: "";
+  flex: 0 0 auto;
+  width: 16px; height: 16px;
+  background: no-repeat center / contain
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23fff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2'/%3E%3Ccircle cx='12' cy='7' r='4'/%3E%3C/svg%3E");
+}
+/* „Notification filter" → zvonček (text ostáva pre čítačky, len ho vizuálne skryjeme) */
+#top-menu #account .notification-filter {
+  display: inline-block;
+  width: 18px; height: 18px;
+  overflow: hidden;
+  text-indent: 110%;
+  white-space: nowrap;
+  vertical-align: middle;
+  background: no-repeat center / 17px 17px
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23fff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9'/%3E%3Cpath d='M13.73 21a2 2 0 0 1-3.46 0'/%3E%3C/svg%3E");
+}
+
+/* ---------- hlavná lišta ---------- */
+#header {
+  /* plochá fialová — `background-image: none` zámerne ruší diagonálnu grafiku („vlnu“),
+     ktorú jadro aj pôvodný návrh dávali do pravej časti hlavičky */
+  background-color: var(--previo-primary);
+  background-image: none;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-height: 0;
+  /* `#main-menu` (záložky projektu) je v jadre `position: absolute; bottom: 0` vnútri `#header`,
+     teda NIE je flex item → dole mu treba nechať rezervu, inak prekryje brand a názov projektu. */
+  padding: 12px 16px;
+  box-sizing: border-box;
+}
+#header:has(#main-menu li) { padding-bottom: 36px; }
+
+/* pomocné tlačidlá pre mobilné vyhľadávanie (pridáva theme.js) — na desktope sa nezobrazujú */
+#header .previo-search-toggle,
+#header .previo-search-close { display: none; }
+/* LOGO — varianta A: biela monochromatická značka Previa priamo na fialovej ploche.
+   Žiadna biela dlaždica → fialová dominuje celej hlavičke.
+
+   Zdroj je vektor `images/previo-mark-white.svg` (zvektorizovaný favicon „visačka na dvere“):
+   biele telo + výrez štítku vyfarbený PRESNE farbou hlavičky (#6D29A0), takže výrez pôsobí
+   ako dieru. POZOR: pri zmene farby hlavičky treba prefarbiť aj druhý `path` v tom SVG.
+
+   `contain` (nie `cover`): značka má okolo seba vlastný priestor, pri `cover` by sa jej
+   šikmé konce odstrihli. Prečo nie jednoduchší variant „PNG + filter: brightness(0) invert(1)“:
+   `previo-mark.png` má nepriehľadné biele pozadie, takže filter z neho urobí plný biely
+   štvorec, nie siluetu (overené renderom 2026-08-10). */
+#header::before {
+  content: "";
+  order: 1;
+  flex: 0 0 auto;
+  width: 40px;
+  height: 40px;
+  background: url("../images/previo-mark-white.svg") no-repeat center / contain;
+}
+/* h1 = hlavný názov v hlavičke. Renderuje ho Redmine: v projekte názov projektu (s drobčekami),
+   mimo projektu názov aplikácie zo `Setting.app_title` → nič nie je v téme natvrdo. */
+#header h1 {
+  order: 2;
+  flex: 1 1 auto;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  font-size: 1.25rem;
+  font-weight: 700;
+  line-height: 1.25;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+#header a { color: #fff; }
+#header h1, #header h1 a { color: #fff; }
+/* jadro dáva drobčekom `display: block` (druhý riadok) → v jednoradovej hlavičke ich chceme inline;
+   nadradené projekty sú jemnejšie, aby vynikol názov aktuálneho projektu */
+#header h1 .breadcrumbs {
+  display: inline;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  line-height: inherit;
+  color: rgba(255, 255, 255, 0.8);
+}
+#header h1 .breadcrumbs a { color: rgba(255, 255, 255, 0.8); }
+
+/* vyhľadávanie + prepínač projektu vpravo */
+#header #quick-search {
+  order: 3;
+  flex: 0 0 auto;
+  margin: 0 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  float: none;
+  max-width: none;
+  color: var(--previo-grey600);
+}
+/* pole: biele, zaoblené, s lupou vnútri; „Search…" je placeholder (dopĺňa theme.js) */
+#header #quick-search form {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 40px;
+  padding: 0 12px;
+  background: #fff;
+  border-radius: var(--previo-radius);
+  box-sizing: border-box;
+}
+/* label je `<a>Search</a>: ` → z odkazu urobíme lupu, dvojbodku schováme */
+#header #quick-search form label { font-size: 0; margin: 0; display: inline-flex; align-items: center; }
+#header #quick-search form label a {
+  display: block;
+  width: 18px; height: 18px;
+  overflow: hidden;
+  text-indent: 110%;
+  white-space: nowrap;
+  background: no-repeat center / contain
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236D29A0' stroke-width='2.2' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='m20 20-4.3-4.3'/%3E%3C/svg%3E");
+}
+/* text v poli je fialový (nie čierny) — pole je jediná biela plocha v hlavičke,
+   fialový text ju viaže k hlavičke; „Search" je placeholder vnútri poľa (dopĺňa theme.js),
+   nie samostatný popisok vedľa poľa */
+#header #quick-search form input#q {
+  width: 15rem;
+  height: 38px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--previo-primary);
+  font-size: 0.875rem;
+}
+#header #quick-search form input#q::placeholder { color: var(--previo-primary); opacity: 0.6; }
+#header #quick-search form input#q:focus { outline: none; }
+/* prepínač projektu = PRIESVITNÉ BIELE tlačidlo so šipkou (fialová presvitá cez pozadie).
+   Na jednolitej fialovej ploche pôsobí jemnejšie než plná tmavšia plocha (tú má červená téma).
+   POZOR: `position` musí zostať `relative` (jadro: `.drdn {position:relative}`) — inak sa panel
+   `.drdn-content` (absolute) ukotví k `#header` a vysype sa mimo tlačidla. */
+#header #project-jump.drdn { position: relative; width: auto; max-width: none; height: auto; padding: 0; }
+/* panel vždy priamo pod tlačidlom, zarovnaný na jeho pravú hranu */
+#header #project-jump .drdn-content {
+  top: calc(100% + 6px);
+  bottom: auto;
+  left: auto;
+  right: 0;
+  min-width: 17.5rem;
+}
+#header #project-jump .drdn-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  height: 40px;
+  max-width: 15rem;
+  padding: 0 14px;
+  box-sizing: border-box;
+  background: rgba(255, 255, 255, 0.18);
+  border: 1px solid rgba(255, 255, 255, 0.55);
+  border-radius: var(--previo-radius);
+  color: #fff;
+  font-size: 0.875rem;
+  font-weight: 600;
+  /* `normal` (nie 40px): rámik ubral 2 px z vnútornej výšky, pevný riadok by text tlačil dolu —
+     zvislé centrovanie rieši `align-items: center` vyššie */
+  line-height: normal;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+#header #project-jump .drdn-trigger::after {
+  content: "";
+  flex: 0 0 auto;
+  width: 12px; height: 12px;
+  background: no-repeat center / contain
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23fff' stroke-width='2.5' stroke-linecap='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+}
+#header #project-jump .drdn-trigger:hover {
+  background: rgba(255, 255, 255, 0.28);
+  border-color: rgba(255, 255, 255, 0.8);
+}
+
+/* záložky projektu: biely text na plochej fialovej; aktívna/hover = biela pilulka.
+   Text nemá halo (tieň) ako v červenej téme — tam ho potreboval kvôli svetlej grafike
+   v pravej časti banneru, tu je pozadie jednolito fialové. */
+#main-menu li a {
+  font-weight: 500;
+  color: #fff;
+  border-radius: var(--previo-radius);
+  margin-bottom: 4px;
+}
+#main-menu li a.selected,
+#main-menu li a:hover {
+  background-color: #fff;
+  color: var(--previo-primary);
+}
+
+/* tlačidlo "+" (nový objekt) — tmavšia fialová, biely "+" (inak splýva s pozadím) */
+#main-menu li a.new-object { background-color: var(--previo-primary-dark); color: #fff; }
+#main-menu li a.new-object:hover { background-color: var(--previo-primary); color: #fff; }
+
+/* dropdown pod záložkami (aj "+" menu) — fialový panel ako v PMS */
+#main-menu .menu-children {
+  background: var(--previo-primary);
+  border: none;
+  border-radius: 0 0 12px 12px;
+  box-shadow: 0 6px 16px rgba(10, 10, 10, 0.25);
+  padding: 6px 0;
+}
+#main-menu .menu-children li a {
+  color: #fff;
+  background-color: transparent;
+  font-weight: 500;
+  padding: 10px 18px;
+  border-radius: 0;
+}
+#main-menu .menu-children li a:hover {
+  color: #fff;
+  background-color: var(--previo-primary-dark);
+}
+
+/* generické dropdowny (Jump to a project, "..." menu) — rovnaký PMS vizuál */
+.drdn-content {
+  background-color: var(--previo-primary);
+  border: none;
+  border-radius: 12px;
+  box-shadow: 0 6px 16px rgba(10, 10, 10, 0.25);
+  color: #fff;
+  padding: 6px 0;
+  overflow: hidden;   /* orezanie vnútorného obsahu na zaoblené rohy */
+}
+.drdn-items > * {
+  color: #fff !important;
+  border: none;
+  padding: 10px 16px;
+}
+.drdn-items > a:hover, .drdn-items > *:hover {
+  background-color: var(--previo-primary-dark);
+  color: #fff !important;
+}
+div + .drdn-items { border-top: 1px solid var(--previo-primary-dark); }
+.drdn-content .quick-search input.autocomplete {
+  background-color: #fff !important;
+  border-radius: var(--previo-radius);
+  border: 1px solid var(--previo-primary-dark);
+  padding: 4px 8px 4px 24px !important;
+  color: var(--previo-black);
+}
+.drdn-content .quick-search svg { stroke: var(--previo-grey500); z-index: 1; }
+#project-jump .drdn-items > * { color: #fff !important; }
+#project-jump .drdn-items > a:hover {
+  background-color: var(--previo-primary-dark);
+  color: #fff !important;
+}
+/* Vlastný (nie systémový) scrollbar v zozname projektov — na fialovom paneli je natívny
+   sivý scrollbar s tlačidlami cudzí prvok. Jadro dáva `.drdn-items { max-height:400px; overflow:auto }`,
+   takže scrolluje práve tento zoznam. `scrollbar-*` = Firefox, `::-webkit-scrollbar-*` = Chrome/Edge.
+   Cielené na `#project-jump` — ostatné dropdowny majú svetlé pozadie, tam by biely úchop zmizol. */
+#project-jump .drdn-items {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.45) transparent;
+  overscroll-behavior: contain;
+}
+#project-jump .drdn-items::-webkit-scrollbar { width: 10px; }
+#project-jump .drdn-items::-webkit-scrollbar-track { background: transparent; }
+#project-jump .drdn-items::-webkit-scrollbar-thumb {
+  background-color: rgba(255, 255, 255, 0.45);
+  border-radius: 5px;
+  /* priehľadný rámik → úchop je vizuálne užší a nedotýka sa hrany panelu */
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+#project-jump .drdn-items::-webkit-scrollbar-thumb:hover { background-color: rgba(255, 255, 255, 0.7); }
+#project-jump .drdn-items::-webkit-scrollbar-button { display: none; height: 0; }
+#project-jump .drdn-items::-webkit-scrollbar-corner { background: transparent; }
+
+/* ==========================================================================
+   2. Odkazy — info modrá z DS, fialovú nechávame akciám
+   ========================================================================== */
+a, a:link, a:visited { color: var(--previo-info); }
+a:hover, a:active { color: var(--previo-info-state); }
+a.issue.closed, a.issue.closed:link, a.issue.closed:visited { color: var(--previo-grey400); }
+
+/* nadpisy sekcií v bočnom paneli decentne */
+#sidebar h3 { color: var(--previo-grey600); font-weight: 600; }
+#sidebar { background-color: var(--previo-grey50); border-left: 1px solid var(--previo-grey200); }
+
+/* ==========================================================================
+   3. Tlačidlá podľa PBtn
+   ========================================================================== */
+
+/* Primary — plná fialová (submit akcie).
+   Výška 34 px je tu natvrdo (nie cez padding), inak by Submit v issue formulári mal 34 px
+   (dáva mu ich rich editor) a Save v /my/account len 28 px. */
+input[type="submit"], button[type="submit"] {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: var(--previo-btn-height);
+  box-sizing: border-box;
+  background: var(--previo-primary);
+  color: #fff;
+  border: 1px solid var(--previo-primary);
+  border-radius: var(--previo-radius);
+  padding: 0 14px;
+  font-weight: 500;
+  font-family: var(--fonts-main);
+  cursor: pointer;
+}
+input[type="submit"]:hover, button[type="submit"]:hover {
+  background: var(--previo-primary-dark);
+  border-color: var(--previo-primary-dark);
+}
+
+/* Secondary (outline) — akčné odkazy pri tasku: Edit, Log time, Watch, Copy…
+   a ostatné ne-submit tlačidlá. Vizuál: biele, grey200 rámik, radius 8,
+   hover = inset tieň ako .ds-btn-secondary:hover */
+/* POZOR: nikdy neštýlovať plošne <button> — WYSIWYG toolbar (.jstElements button)
+   používa background-image sprite ikonky a shorthand background: ich zmaže */
+.contextual a.icon,
+input[type="button"] {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: var(--previo-btn-height-sm);
+  box-sizing: border-box;
+  background: #fff;
+  border: 1px solid var(--previo-grey200);
+  border-radius: var(--previo-radius);
+  padding: 0 10px;
+  color: var(--previo-grey600) !important;
+  font-weight: 500;
+  text-decoration: none;
+  line-height: 1.4;
+}
+.contextual a.icon:hover,
+input[type="button"]:hover {
+  box-shadow: inset 0 0 0 1px var(--previo-grey300);
+  background: var(--previo-grey50);
+  color: var(--previo-grey600);
+}
+.contextual a.icon svg { stroke: var(--previo-grey500); }
+
+/* Výber súborov („Choose files") — natívne tlačidlo prehliadača vyzeralo v našom UI cudzo.
+   `::file-selector-button` sa dá naštýlovať ako sekundárne tlačidlo (Edit, Log time…);
+   text tlačidla je od prehliadača a CSS ho zmeniť nevie, tak mu aspoň dáme ikonku uploadu.
+   `font-size: 0` na samotnom inpute schová natívne „No file chosen" vedľa tlačidla. */
+#content input[type="file"] {
+  font-size: 0;
+  border: 0;
+  padding: 0;
+  min-height: 0;
+  background: none;
+  max-width: 100%;
+}
+#content input[type="file"]::file-selector-button {
+  display: inline-flex;
+  align-items: center;
+  height: var(--previo-btn-height-sm);
+  margin: 0;
+  padding: 0 12px 0 32px;
+  background: #fff no-repeat 10px center / 16px 16px
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23515151' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4'/%3E%3Cpath d='M17 8l-5-5-5 5'/%3E%3Cpath d='M12 3v13'/%3E%3C/svg%3E");
+  border: 1px solid var(--previo-grey200);
+  border-radius: var(--previo-radius);
+  color: var(--previo-grey600);
+  font-family: var(--fonts-main);
+  font-size: 0.875rem;
+  font-weight: 500;
+  line-height: var(--previo-btn-height-sm);
+  cursor: pointer;
+}
+#content input[type="file"]::file-selector-button:hover {
+  background-color: var(--previo-grey50);
+  box-shadow: inset 0 0 0 1px var(--previo-grey300);
+}
+
+/* ==========================================================================
+   4. Formulárové polia podľa DS (radius 8, výška 36px, grey300 rámik)
+   ========================================================================== */
+#content input[type="text"], #content input[type="password"],
+#content input[type="email"], #content input[type="date"],
+#content input[type="number"], #content textarea {
+  border: 1px solid var(--previo-grey300);
+  border-radius: var(--previo-radius);
+  padding: 0 8px;
+  min-height: var(--previo-field-height);
+  box-sizing: border-box;
+  font-family: var(--fonts-main);
+}
+#content textarea { padding: 8px; }
+
+/* selecty: vlastná šípka ako v DS (okrem multiselectov) */
+#content select:not([multiple]) {
+  appearance: none;
+  -webkit-appearance: none;
+  border: 1px solid var(--previo-grey300);
+  border-radius: var(--previo-radius);
+  min-height: var(--previo-select-height);
+  height: var(--previo-select-height);
+  padding: 0 28px 0 8px;
+  background-color: #fff;
+  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="%23515151" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>');
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+  font-family: var(--fonts-main);
+}
+#content select[multiple] {
+  border: 1px solid var(--previo-grey300);
+  border-radius: var(--previo-radius);
+}
+
+/* Popisky polí zvislo NA STREDE poľa.
+   Jadro dáva `.tabular label { float:left; width:175px; text-align:right; line-height:24px }`,
+   takže popisok sedel hore a voči 36px poľu bol o 7 px vyššie. Z popisku spravíme flex box
+   vysoký ako pole v tom riadku (`:has()` rozlíši select / textové pole / textareu). */
+#content .tabular p > label {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  min-height: var(--previo-field-height);
+  line-height: 1.25;
+}
+#content .tabular p:has(> select:not([multiple])) > label { min-height: var(--previo-select-height); }
+/* viacriadkové polia (popis, poznámka) — popisok patrí hore, nie do stredu */
+#content .tabular p:has(> textarea) > label,
+#content .tabular p:has(> .jstBlock) > label {
+  min-height: 0;
+  align-items: flex-start;
+  padding-top: 5px;
+}
+
+#content input:focus, #content select:focus, #content textarea:focus {
+  border-color: var(--previo-primary);
+  outline: 2px solid var(--previo-primary-transparent);
+}
+
+/* --- Rozbalený zoznam selectov podľa DS — len v prehliadačoch
+       s podporou `base-select` (Chromium); inde ostáva čistý native --- */
+@supports (appearance: base-select) {
+  #content select:not([multiple]) {
+    appearance: base-select;
+    display: inline-flex;
+    align-items: center;      /* text v zatvorenom selecte vycentrovaný */
+  }
+  #content select:not([multiple])::picker-icon { display: none; } /* šípku máme vlastnú */
+
+  /* base-select trigger sa zmršťuje podľa obsahu — vo formulároch držíme
+     jednotnú šírku polí ako v PMS */
+  #issue-form select:not([multiple]),
+  #content form select:not([multiple]) { min-width: 13em; }
+
+  ::picker(select) {
+    appearance: base-select;
+    background: #fff;
+    border: 1px solid var(--previo-grey200);
+    border-radius: 12px;
+    box-shadow: 0 6px 16px rgba(10, 10, 10, 0.15);
+    padding: 6px 0;
+  }
+  #content option {
+    padding: 10px 16px;
+    font-family: var(--fonts-main);
+    border-bottom: 1px solid var(--previo-grey100);
+  }
+  #content option:last-of-type { border-bottom: none; }
+  #content option:checked {
+    background: var(--previo-primary-transparent);
+    color: var(--previo-primary);
+    font-weight: 500;
+  }
+  #content option:hover, #content option:focus {
+    background: var(--previo-grey100);
+  }
+  #content optgroup {
+    font-weight: 600;
+    color: var(--previo-grey500);
+    padding: 6px 12px 0;
+  }
+
+  /* prázdna hodnota (— žiadna —): nízky nenápadný riadok bez fajky a podfarbenia */
+  #content option:empty {
+    min-height: 20px;
+    padding: 4px 16px;
+  }
+  #content option:empty::checkmark { display: none; }
+  #content option:checked:empty {
+    background: transparent;
+    font-weight: 400;
+  }
+}
+
+/* filtre používajú tú istú výšku ako ostatné polia (token) */
+#filters-table select, #filters-table input,
+.query-columns select {
+  min-height: var(--previo-field-height);
+}
+
+/* FILTRE — layout „Add filter".
+   Jadro to skladá floatmi (`#filters-table { float: inline-start; width:auto }` +
+   `.add-filter { float: inline-end; width:35% }`) a narovnáva to až pod 899 px. V medzipásme sa
+   float nevmestil a pole skončilo odtrhnuté uprostred boxu.
+
+   Riešenie: nad 900 px pevný stĺpec pre filtre → „Add filter" má VŽDY rovnaké miesto a neposkakuje
+   pri pridaní/odobraní filtra. Šírka 34rem (544 px) je zvolená podľa najširšieho bežného riadku
+   filtra (dátum „between" = 539 px, „subject contains" = 530 px), aby sa žiadny riadok nezalamoval.
+   Keď sa dvojica do šírky nezmestí (úzke okno, bočný panel), flex-wrap posunie „Add filter" pod
+   filtre zľava. Pod 900 px si to preberá responsive.css jadra (oboje na plnú šírku pod sebou). */
+@media screen and (min-width: 900px) {
+  #filters > div:has(> #filters-table) {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: 6px 24px;
+  }
+  /* pevná šírka = stabilná pozícia „Add filter"; `flex: 0 0 auto` navyše bráni stláčaniu
+     (inak sa riadok „Status | is | open" zalomí na dva riadky) */
+  /* Pevných 37rem (592 px): prirodzená šírka najširšej reálnej zostavy filtrov je 577 px
+     (názov 109 + operátor 164 + hodnoty 280 vrátane dátumu „between" s dvoma dátumami),
+     takže sa ŽIADNY riadok nezalamuje. Šírka nezávisí od počtu ani obsahu filtrov →
+     „Add filter" pri pridávaní filtrov neposkakuje.
+     Zámerne NIE `min(…, 100% - x)`: v úzkom okne by sa blok stlačil a riadky by sa lámali —
+     radšej nech „Add filter" spadne pod filtre (rieši to flex-wrap nižšie). */
+  #filters #filters-table { float: none; flex: 0 0 auto; width: 37rem; }
+  #filters .add-filter {
+    float: none;
+    width: auto;
+    text-align: start;
+    flex: 0 1 auto;
+    /* rovnaký horný odstup ako `.filter` (`margin-block: 5px 0`) → selecty sedia na jednej osi */
+    margin-block: 5px 0;
+  }
+}
+/* Redmine dáva stĺpcu s názvom filtra pevných 230 px, takže select visel ďaleko od labelu.
+   `auto` = select hneď vedľa („Status [open]" drží pokope ako jedna vec).
+   Pod 599 px si jadro nastavuje `.field { width: 100% }` s vyššou špecifickosťou → nechávame tak. */
+#filters-table .field { width: auto; }
+#filters-table .filter { gap: 0 12px; }
+
+/* Zarovnanie stĺpcov pri viacerých filtroch.
+   Každý `.filter` je samostatný flex riadok, takže pri rôzne dlhých názvoch („Status" vs
+   „Target version") začínal každý select inde a pri širokej hodnote sa riadok navyše zalomil.
+   Subgrid = jedna mriežka pre celý blok: `.field | .operator | .values` sú zarovnané cez všetky
+   riadky, prvé dva stĺpce sú široké presne podľa najdlhšieho obsahu (žiadna prázdna medzera)
+   a hodnoty dostanú zvyšok. `minmax(0, 1fr)` drží dlhé selecty vnútri boxu (jadro im dáva
+   `max-width: 100%`, takže sa skrátia) namiesto zalomenia celého riadku.
+   `@supports` = bez subgridu ostane pôvodný flex, len bez zarovnania. */
+@supports (grid-template-columns: subgrid) {
+  #filters-table {
+    display: grid;
+    grid-template-columns: max-content max-content minmax(0, 1fr);
+    row-gap: 6px;
+    column-gap: 12px;
+  }
+  #filters-table .filter {
+    display: grid;
+    grid-template-columns: subgrid;
+    grid-column: 1 / -1;
+    align-items: center;
+    margin: 0;
+  }
+}
+
+/* Multiselect s dlhou hodnotou: `.values` je blok s inline `<span>`-mi, v ktorých je
+   `select.value` + prepínač `span.toggle-multiselect` („+"). Keď bola hodnota dlhá
+   (napr. „Channel Manager - CHM 1.3.1 (MASTER)"), select zabral celý stĺpec a „+" sa zalomilo
+   pod neho. Flex + `min-width: 0` na poliach = radšej sa zmenší select (jadro mu už dáva
+   `max-width: 100%`) a „+" zostane vždy vedľa hodnoty. */
+#filters-table .values { display: flex; align-items: center; flex-wrap: wrap; gap: 4px 10px; }
+#filters-table .values > span { display: inline-flex; align-items: center; gap: 6px; min-width: 0; }
+#filters-table .values > span > select.value,
+#filters-table .values > span > input.value { min-width: 0; }
+
+/* ==========================================================================
+   5. Boxy, tabuľky, karty — biele plochy, grey200 rámiky (DS card)
+   ========================================================================== */
+.box, #content .box {
+  border: 1px solid var(--previo-grey200);
+  border-radius: var(--previo-radius);
+  background-color: #fff;
+}
+table.list {
+  border: 1px solid var(--previo-grey200);
+  border-radius: var(--previo-radius);
+  border-spacing: 0;
+}
+table.list th { background-color: var(--previo-grey100); color: var(--previo-grey600); }
+table.list tbody tr:hover { background-color: var(--previo-grey100); }
+tr.odd { background-color: #fff; }
+tr.even { background-color: var(--previo-grey50); }
+
+/* detail tasku — biely namiesto krémového (core #ffffdd štýl) */
+div.issue {
+  background-color: #fff;
+  border: 1px solid var(--previo-grey200);
+  border-radius: var(--previo-radius);
+}
+
+/* login box — biely namiesto žltého */
+#login-form {
+  background-color: #fff;
+  border: 1px solid var(--previo-grey200);
+  border-radius: var(--previo-radius);
+}
+#login-form table { background: none; }
+
+/* ==========================================================================
+   6. Stavové prvky — flash hlášky, priority, progress, tabs
+   ========================================================================== */
+div.flash.notice {
+  background-color: var(--previo-positive-transparent);
+  border-color: var(--previo-positive-light);
+  color: var(--previo-positive);
+  border-radius: var(--previo-radius);
+}
+div.flash.error, #errorExplanation {
+  background-color: var(--previo-negative-transparent);
+  border-color: var(--previo-negative);
+  color: var(--previo-negative-dark);
+  border-radius: var(--previo-radius);
+}
+div.flash.warning, .conflict {
+  background-color: var(--previo-warning-transparent);
+  border-color: var(--previo-warning);
+  color: var(--previo-warning-dark);
+  border-radius: var(--previo-radius);
+}
+
+/* priority — len jemné podfarbenie, text ostáva čitateľný tmavý */
+tr.priority-highest, table.list tbody tr.priority-highest:hover {
+  background: var(--previo-negative-transparent);
+}
+tr.priority-highest td.subject a { font-weight: 600; }
+tr.priority-high2, tr.priority-high3, tr.priority-high4,
+table.list tbody tr.priority-high2:hover,
+table.list tbody tr.priority-high3:hover,
+table.list tbody tr.priority-high4:hover {
+  background: var(--previo-warning-transparent);
+}
+tr.priority-lowest td, tr.priority-low2 td { color: var(--previo-grey500); }
+
+table.progress td.closed { background: var(--previo-positive-light); }
+table.progress td.done { background: var(--previo-positive-transparent); }
+
+#content .tabs ul li a.selected {
+  border-bottom-color: var(--previo-primary);
+  color: var(--previo-primary);
+  font-weight: 600;
+}
+
+#context-menu li a.focus, #context-menu li a:hover {
+  background-color: var(--previo-primary-transparent);
+  color: var(--previo-primary-dark);
+}
+
+/* tooltip podľa DS (grey600, radius 8) */
+.tooltip span.tip {
+  background: var(--previo-grey600);
+  color: #fff;
+  border-radius: var(--previo-radius);
+}
+
+/* ==========================================================================
+   7. Drobnosti
+   ========================================================================== */
+#footer { color: var(--previo-grey400); }
+
+/* Oprava zo zoznamu požiadaviek: stabilná šírka poľa popisu */
+#issue_description { width: 99%; box-sizing: border-box; }
+
+/* ==========================================================================
+   8. Mobil — responsive.css sa načítava PO téme a nastavuje modrú hlavičku;
+   prebíjame vyššou špecifickosťou (html #header) v rovnakej media query.
+   ========================================================================== */
+@media screen and (max-width: 899px) {
+  /* Mobilná hlavička podľa návrhu: [biele logo + PREVIO Redmine] [lupa] [hamburger].
+     Jadro tu robí `#header` fixed 64px, skryje `h1` aj vyhľadávací formulár a z `#project-jump`
+     spraví absolútny pruh cez celú šírku — to všetko prebíjame (téma sa načítava PRED
+     responsive.css, preto `html #header`).
+
+     Breakpoint je 899 px (nie 768 px z návrhu) zámerne: presne tu prepína `responsive.css`
+     jadra na mobilný layout a pridáva hamburger. Pri 768 px by v pásme 769–899 px už bežal
+     mobilný layout jadra, ale hlavička by ostala desktopová → rozpadnutá lišta. */
+  html #header {
+    background-color: var(--previo-primary);
+    background-image: none;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    height: 64px;
+    padding: 0 0 0 12px;
+  }
+  /* logo je menšie; žiadny `border-radius` — nie je to dlaždica, ale samotná biela značka */
+  #header::before { width: 34px; height: 34px; }
+  /* jadro skrýva názov na mobile (`display: none !important`) — my ho chceme, je to jediný text
+     v lište; nadradené projekty (drobčeky) na úzkej lište vynecháme */
+  html #header h1 {
+    display: block !important;
+    font-size: 1.0625rem;
+    min-width: 0;
+  }
+  #header h1 .breadcrumbs { display: none; }
+  /* prepínač projektu je na mobile v jadre absolútny pruh cez celú hlavičku → skryjeme;
+     projekt sa prepína cez vyhľadávanie (command palette) alebo vysúvacie menu */
+  #header #project-jump.drdn { display: none; }
+
+  /* lupa (pridá ju theme.js) + hamburger vpravo */
+  #header .previo-search-toggle {
+    display: block; /* základné pravidlo mimo tejto media query ho skrýva */
+    order: 8;
+    flex: 0 0 auto;
+    width: 44px; height: 44px;
+    margin-left: auto;
+    border: 0;
+    padding: 0;
+    background: transparent no-repeat center / 21px 21px
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23fff' stroke-width='2.2' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='m20 20-4.3-4.3'/%3E%3C/svg%3E");
+    cursor: pointer;
+  }
+  #header a.mobile-toggle-button { order: 9; color: #fff; float: none; margin: 0; border-left: 0; }
+
+  /* otvorené vyhľadávanie: biele pole cez celú lištu + krížik */
+  #header.previo-search-open::before,
+  #header.previo-search-open .previo-search-toggle,
+  #header.previo-search-open a.mobile-toggle-button { display: none; }
+  html #header.previo-search-open h1 { display: none !important; }
+  #header.previo-search-open { padding: 0 12px; }
+  #header.previo-search-open #quick-search { order: 1; display: flex; flex: 1 1 auto; margin: 0; }
+  #header.previo-search-open #quick-search form { display: flex; flex: 1 1 auto; }
+  #header.previo-search-open #quick-search form input#q { flex: 1 1 auto; width: auto; }
+  #header.previo-search-open .previo-search-close {
+    display: block;
+    flex: 0 0 auto;
+    width: 26px; height: 26px;
+    border: 0;
+    padding: 0;
+    background: transparent no-repeat center / 17px 17px
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236D29A0' stroke-width='2.2' stroke-linecap='round'%3E%3Cpath d='M18 6 6 18M6 6l12 12'/%3E%3C/svg%3E");
+    cursor: pointer;
+  }
+
+  /* vysúvacie (flyout) menu v Previo farbách namiesto default modrej */
+  html .flyout-menu { background-color: var(--previo-grey600); }
+  html .flyout-menu h3 {
+    background-color: var(--previo-primary);
+    border-top-color: var(--previo-primary-dark);
+    border-bottom-color: var(--previo-primary-dark);
+  }
+  html .flyout-menu ul li a:hover { background-color: var(--previo-primary-dark); }
+}
