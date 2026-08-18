@@ -74,3 +74,19 @@ a mobilné otváranie vyhľadávania. Redmine si ho načíta sám, len tým, že
   precompile. Téma používa inline `data:` URI.
 - Padding na `#top-menu a` rozbije skrytie textu zvončeka notifikácií (`text-indent: 110 %` sa
   počíta z vnútornej šírky), preto má `.notification-filter` explicitne `padding: 0`.
+
+## Licencia
+
+Copyright (C) 2026 Martin Kopáč
+
+Kód témy (CSS, JavaScript) je pod GPL-2.0-or-later, rovnako ako Redmine — viď
+[LICENSE](LICENSE).
+
+**Značka Previa pod licenciu NEPATRÍ.** Súbory `images/previo-mark-white.svg` a
+`favicon/favicon.ico` sú chránená značka spoločnosti Previo; GPL sa na ne nevzťahuje
+a nedáva právo používať ich pre inú firmu. Kto si tému prispôsobuje, nech ich nahradí
+vlastnými.
+
+Font **Inter** (`fonts/InterVariable.woff2`) je dielo tretej strany pod licenciou
+SIL Open Font License 1.1 — Copyright © The Inter Project Authors
+(https://github.com/rsms/inter). Text licencie je v [fonts/LICENSE-Inter.txt](fonts/LICENSE-Inter.txt).
