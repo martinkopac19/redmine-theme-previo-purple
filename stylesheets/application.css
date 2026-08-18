@@ -752,6 +752,104 @@ div.issue {
 }
 #login-form table { background: none; }
 
+/* --------------------------------------------------------------------------
+   Google SSO tlačidlo (plugin redmine_oauth) — vzhľad podľa id.previo.app
+   Plugin vykresľuje `#oauth-form` ako SÚRODENCA `#login-form`, nie vnútri neho,
+   takže sa oba bloky opticky spájajú do jednej karty: hornej sa zrežú spodné
+   rohy a spodná dostane rovnakú šírku aj rám.
+   POZOR: `redmine_oauth.css` sa načítava PO téme a používa selektory
+   `div#oauth-form` / `div#oauth-form-buttons` (šírka `fit-content`, centrovanie),
+   preto tu treba VYŠŠIU špecifickosť — odtiaľ prefix `html`.
+   Zlúčenie je podmienené `:has()`, aby login box bez oauth bloku (registrácia,
+   zabudnuté heslo) nezostal bez spodného rámu.
+   GOTCHA: musí to byť `~` a nie `+` — plugin medzi `#login-form` a `#oauth-form`
+   vypisuje ešte `<link>` na svoj vlastný CSS, a ten adjacenciu `+` rozbije.
+   -------------------------------------------------------------------------- */
+html #login-form:has(~ div#oauth-form) {
+  margin-bottom: 0;
+  border-bottom: none;
+  border-radius: var(--previo-radius) var(--previo-radius) 0 0;
+}
+html div#oauth-form {
+  box-sizing: border-box;
+  width: 340px;              /* rovnaká šírka ako #login-form v jadre (r. 201) */
+  margin: 0 auto 2em auto;
+  padding: 22px 20px 20px;
+  position: relative;
+  background: #fff;
+  border: 1px solid var(--previo-grey200);
+  border-top: none;
+  border-radius: 0 0 var(--previo-radius) var(--previo-radius);
+}
+
+/* oddeľovač „or login with" — vodorovná linka a text posadený na nej */
+html div#oauth-form::before {
+  content: "";
+  position: absolute;
+  top: 11px;
+  left: 20px;
+  right: 20px;
+  border-top: 1px solid var(--previo-grey200);
+}
+html div#oauth-form::after {
+  content: "or login with";
+  position: absolute;
+  top: 11px;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  padding: 0 8px;
+  background: #fff;
+  color: var(--previo-grey500);
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+/* tlačidlá providerov — TERCIÁRNE tlačidlo podľa Previo design systemu.
+   Zdroj: packages/design-system/src/components/btn/PBtn.vue → `type: tertiary`
+   je Quasar `flat`, teda BEZ pozadia a BEZ rámu, text v primary farbe;
+   typografia z PTextCta (14 px / 500), padding 4px 6px (laptopAndLarge),
+   `no-caps` (žiadne veľké písmená). Na celú šírku karty s vycentrovaným obsahom. */
+html div#oauth-form-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+html div#oauth-form-buttons button {
+  /* !important prebíja inline `style="background: …"` z nastavenia providera */
+  background: none !important;
+  border: none;
+  border-radius: var(--previo-radius-sm);
+  box-shadow: none;
+  color: var(--previo-primary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 34px;
+  margin: 0;
+  padding: 4px 6px;
+  font-size: 14px;
+  font-weight: 500;
+}
+/* Quasar dáva flat tlačidlu pri hoveri jemný závoj vo vlastnej farbe —
+   ekvivalent v tokenoch je primary-transparent. */
+html div#oauth-form-buttons button:hover {
+  background: var(--previo-primary-transparent) !important;
+}
+
+/* Google „G" v originálnych farbách. FontAwesome je jednobarevný, takže sa jeho
+   glyf skryje a namiesto neho ide SVG podľa Google brand guidelines. Naviazané
+   na `.fa-google`, aby prípadný ďalší provider (Keycloak) dostal svoju ikonu. */
+html div#oauth-form-buttons button i.fa-google {
+  display: inline-block;
+  width: 18px;
+  height: 18px;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Cpath fill='%23EA4335' d='M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z'/%3E%3Cpath fill='%234285F4' d='M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z'/%3E%3Cpath fill='%23FBBC05' d='M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24s.92 7.54 2.56 10.78l7.97-6.19z'/%3E%3Cpath fill='%2334A853' d='M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z'/%3E%3C/svg%3E") no-repeat center / 18px 18px;
+}
+html div#oauth-form-buttons button i.fa-google::before { content: ""; }
+
 /* ==========================================================================
    6. Stavové prvky — flash hlášky, priority, progress, tabs
    ========================================================================== */
