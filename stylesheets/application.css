@@ -765,21 +765,30 @@ div.issue {
    GOTCHA: musí to byť `~` a nie `+` — plugin medzi `#login-form` a `#oauth-form`
    vypisuje ešte `<link>` na svoj vlastný CSS, a ten adjacenciu `+` rozbije.
    -------------------------------------------------------------------------- */
+/* Prihlásenie ide cez Google SSO, takže formulár s heslom je na login stránke
+   SKRYTÝ a `#oauth-form` zostáva ako samostatná karta.
+   Núdzový vstup `/login?nosso=1` heslo vráti: tú adresu podporuje priamo plugin
+   (`account_controller_patch.rb:31` — obchádza aj prípadné presmerovanie na
+   providera) a `theme.js` na nej nastaví `data-previo-nosso` na <html>, pod čím
+   sa nižšie obnoví pôvodný spojený vzhľad oboch boxov.
+   Podmienka `:has()` musí zostať: login box BEZ oauth bloku (registrácia,
+   zabudnuté heslo) sa skryť NESMIE, inak by tie stránky ostali prázdne. */
 html #login-form:has(~ div#oauth-form) {
-  margin-bottom: 0;
-  border-bottom: none;
-  border-radius: var(--previo-radius) var(--previo-radius) 0 0;
+  display: none;
 }
 html div#oauth-form {
   box-sizing: border-box;
   width: 340px;              /* rovnaká šírka ako #login-form v jadre (r. 201) */
-  margin: 0 auto 2em auto;
-  padding: 22px 20px 20px;
+  /* Spodný margin je zámerne veľký: pri centrovaní vo flexe sa počíta do výšky
+     položky, takže kartu nadzdvihne o svoju polovicu NAD geometrický stred — tam,
+     kde ju malo zadanie. Na `#content` sa to `padding-bottom` spraviť nedá,
+     ten sa pri content-boxe pridá navyše a centrovanie nezmení. */
+  margin: 0 auto 120px auto;
+  padding: 20px;
   position: relative;
   background: #fff;
   border: 1px solid var(--previo-grey200);
-  border-top: none;
-  border-radius: 0 0 var(--previo-radius) var(--previo-radius);
+  border-radius: var(--previo-radius);
 }
 
 /* oddeľovač „or login with" — vodorovná linka a text posadený na nej */
@@ -802,6 +811,50 @@ html div#oauth-form::after {
   color: var(--previo-grey500);
   font-size: 12px;
   white-space: nowrap;
+}
+
+/* Oddeľovač „or login with" nemá čo oddeľovať, keď je formulár s heslom skrytý.
+   Pseudoelementy sa nerušia celé — nižšie sa im pri `?nosso=1` vráti len
+   `content`, ostatné vlastnosti (pozícia, linka) platia z pravidiel vyššie. */
+html div#oauth-form::before,
+html div#oauth-form::after {
+  content: none;
+}
+
+/* --- núdzový vstup `/login?nosso=1` — pôvodný vzhľad -----------------------
+   Heslo hore, Google dole, oba boxy opticky spojené do jednej karty. */
+html[data-previo-nosso] #login-form:has(~ div#oauth-form) {
+  display: block;
+  margin-bottom: 0;
+  border-bottom: none;
+  border-radius: var(--previo-radius) var(--previo-radius) 0 0;
+}
+html[data-previo-nosso] div#oauth-form {
+  padding: 22px 20px 20px;
+  border-top: none;
+  border-radius: 0 0 var(--previo-radius) var(--previo-radius);
+}
+html[data-previo-nosso] div#oauth-form::before { content: ""; }
+html[data-previo-nosso] div#oauth-form::after { content: "or login with"; }
+
+/* --- rozloženie login stránky ---------------------------------------------
+   Karta patrí opticky do stredu plochy, nie pod hlavičku. Scopované na
+   `action-login`, aby to nezasiahlo registráciu ani zabudnuté heslo.
+   `flex-direction: column` je nutné: v `#content` sú aj flash hlášky a pri
+   riadkovom smere by stáli VEDĽA karty — takto zostanú nad ňou a vycentruje sa
+   celá skupina. Spodný `margin` karty ju drží nepatrne nad geometrickým stredom,
+   čo je opticky správnejšie než presný stred.
+   `#top-menu` má na tejto stránke jediný obsah — odkaz „Sign in", ktorý vedie
+   na stránku, na ktorej práve stojíš. S ním zmizne aj jeho prázdny tmavý pás. */
+body.controller-account.action-login #top-menu {
+  display: none;
+}
+body.controller-account.action-login #content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: calc(100vh - 240px);
 }
 
 /* tlačidlá providerov — TERCIÁRNE tlačidlo podľa Previo design systemu.

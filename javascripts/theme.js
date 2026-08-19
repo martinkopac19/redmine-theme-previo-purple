@@ -5,6 +5,17 @@
 (function () {
   'use strict';
 
+  /* Login stránka: prihlásenie ide cez Google SSO, takže formulár s heslom je
+     v CSS skrytý. Núdzový vstup `/login?nosso=1` ho vráti — plugin redmine_oauth
+     túto adresu podporuje priamo a téma na nej obnoví pôvodný vzhľad.
+     Beží HNEĎ, nie v `init()`: theme.js je v <head>, takže sa atribút nastaví
+     ešte pred vykreslením formulára a nič neblikne. */
+  try {
+    if (/[?&]nosso(=|&|$)/.test(window.location.search)) {
+      document.documentElement.setAttribute('data-previo-nosso', '1');
+    }
+  } catch (e) {}
+
   var MOBILE = 899; // rovnaký breakpoint ako responsive.css jadra
 
   function header() { return document.getElementById('header'); }
@@ -79,8 +90,24 @@
     });
   }
 
+  /* Núdzový režim si musí prežiť zlyhané prihlásenie: Redmine po nesprávnom hesle
+     vráti login stránku na adrese `/login` BEZ `?nosso=1`, takže by sa formulár
+     znova skryl a zostala by len chybová hláška bez toho, kam ju napraviť.
+     Preto sa `nosso=1` doplní do cieľa formulára. Poradie je v poriadku aj s jadrovým
+     `keepAnchorOnSignIn`, ktoré na konec action prilepí `#hash` — query ide pred fragment. */
+  function keepNossoOnSubmit() {
+    if (!document.documentElement.hasAttribute('data-previo-nosso')) return;
+    var form = document.querySelector('#login-form form');
+    if (!form || form.dataset.previoNosso) return;
+    form.dataset.previoNosso = '1';
+    var action = form.getAttribute('action') || '';
+    if (/[?&]nosso(=|&|$)/.test(action)) return;
+    form.setAttribute('action', action + (action.indexOf('?') === -1 ? '?' : '&') + 'nosso=1');
+  }
+
   function init() {
     try { setPlaceholder(); } catch (e) {}
+    try { keepNossoOnSubmit(); } catch (e) {}
     try { wireMobileSearch(); } catch (e) {}
   }
 
