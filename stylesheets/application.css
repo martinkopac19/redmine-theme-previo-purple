@@ -109,6 +109,9 @@ body { color: var(--previo-black); }
 /* DOM poradie je #account, #loggedas, ul(navigácia) → poradím to na navigácia | účet vpravo */
 #top-menu > ul { order: 1; display: flex; align-items: center; gap: 20px; margin: 0; padding: 0; list-style: none; float: none; }
 #top-menu > ul li { margin: 0; }
+/* `margin-left: auto` odtĺača účet doprava. Pluginy, ktoré si sem presúvajú ikonu,
+   túto úlohu preberajú na seba — viď CSS v redmine_ai_assistant a v
+   redmine_inapp_notifications; téma o nich nemusí vedieť. */
 #top-menu #loggedas { order: 2; margin-left: auto; display: inline-flex; align-items: center; gap: 7px; float: none; padding: 0; }
 #top-menu #account { order: 3; float: none; }
 #top-menu #account ul { display: flex; align-items: center; gap: 20px; margin: 0; padding: 0; list-style: none; }
@@ -139,8 +142,10 @@ body { color: var(--previo-black); }
    `padding: 0` je tu POVINNÉ — zvonček skrýva svoj text cez `width: 18px; overflow: hidden;
    text-indent: 110%`, a text-indent sa počíta z VNÚTORNEJ šírky. Padding by ju zmenšil
    na 4 px, odsun textu by prestal stačiť a vedľa zvončeka by vykuklo „Notification filter". */
-#top-menu #account .notification-filter { padding: 0; margin: 0; }
-#top-menu #account .notification-filter:hover { background-color: transparent; }
+#top-menu #account .notification-filter,
+#top-menu .inapp-notifications { padding: 0; margin: 0; }
+#top-menu #account .notification-filter:hover,
+#top-menu .inapp-notifications:hover { background-color: transparent; }
 
 /* „Logged in as" skryjeme (necháme len meno) a pred meno dáme ikonu používateľa.
    Text zostáva v DOM pre čítačky obrazovky. */
@@ -153,14 +158,30 @@ body { color: var(--previo-black); }
   background: no-repeat center / contain
     url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23fff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2'/%3E%3Ccircle cx='12' cy='7' r='4'/%3E%3C/svg%3E");
 }
-/* „Notification filter" → zvonček (text ostáva pre čítačky, len ho vizuálne skryjeme) */
-#top-menu #account .notification-filter {
+/* Ikony v hlavičke: text ostáva v DOM pre čítačky obrazovky, len ho vizuálne skryjeme. */
+#top-menu #account .notification-filter,
+#top-menu .inapp-notifications {
   display: inline-block;
   width: 18px; height: 18px;
   overflow: hidden;
   text-indent: 110%;
   white-space: nowrap;
   vertical-align: middle;
+}
+
+/* „Notification filter" → lievik. Zvonček tejto položke patril historicky, lenže otváral
+   NASTAVENIA filtrovania, nie samotné notifikácie — odkedy existuje panel, patrí zvonček jemu.
+   Lievik je zvolený zámerne: obálka s malým ozubeným kolieskom bola pri 17 px nečitateľná
+   (z kolieska ostala len škvrna), lievik drží tvar aj v tejto veľkosti. */
+#top-menu #account .notification-filter {
+  background: no-repeat center / 17px 17px
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23fff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolygon points='22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3'/%3E%3C/svg%3E");
+}
+
+/* Notifikácie → zvonček. Selektor je `#top-menu`, nie `#top-menu #account`: JS pluginu
+   odkaz presúva o úroveň vyššie, aby sedel naľavo od prútika AI. */
+#top-menu .inapp-notifications {
+  position: relative;   /* kotva pre odznak s počtom */
   background: no-repeat center / 17px 17px
     url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23fff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9'/%3E%3Cpath d='M13.73 21a2 2 0 0 1-3.46 0'/%3E%3C/svg%3E");
 }
@@ -707,6 +728,16 @@ input[type="button"]:hover {
     align-items: center;
     margin: 0;
   }
+
+  /* Subgrid vyššie zobral `.filter` jeho horný `margin: 5px`, ktorý mu dáva jadro.
+     Kompenzácia `margin-block: 5px 0` na „Add filter" (v @media bloku vyššie) tým prestala
+     mať čo kompenzovať a posúvala celý blok o 5 px NIŽŠIE než riadky filtrov — label aj select
+     potom nesedeli na jednej osi s „is / active". Preto ho tu vraciame na nulu.
+     Scopované rovnakým @media, lebo tá kompenzácia platí tiež len nad 900 px; pod tým si
+     rozloženie preberá responsive.css jadra (oboje na plnú šírku pod sebou). */
+  @media screen and (min-width: 900px) {
+    #filters .add-filter { margin-block: 0; }
+  }
 }
 
 /* Multiselect s dlhou hodnotou: `.values` je blok s inline `<span>`-mi, v ktorých je
@@ -1046,4 +1077,21 @@ table.progress td.done { background: var(--previo-positive-transparent); }
     border-bottom-color: var(--previo-primary-dark);
   }
   html .flyout-menu ul li a:hover { background-color: var(--previo-primary-dark); }
+
+  /* avatar v hlavičke vysúvacieho menu — jadro ho kreslí 40 × 40 px ako fotku, čo pri
+     iniciálach vedľa riadkov menu pôsobí ako chyba. Zmenšené na veľkosť bežnej ikony. */
+  html .flyout-menu__avatar a:first-child {
+    display: flex;
+    align-items: center;
+    width: auto;
+    padding-left: 12px;
+  }
+  html .flyout-menu__avatar .avatar.s40,
+  html .flyout-menu__avatar img.gravatar {
+    block-size: 24px;
+    inline-size: 24px;
+    width: 24px;
+    height: 24px;
+  }
+  html .flyout-menu__avatar span[role="img"].avatar.s40 { font-size: calc(24px * .4); }
 }
