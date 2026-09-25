@@ -967,6 +967,8 @@ table.list tbody tr.priority-high3:hover,
 table.list tbody tr.priority-high4:hover {
   background: var(--previo-warning-transparent);
 }
+/* Urgent (high2) — medzi oranžovou High a červenou Immediate, nech sa v zozname odlíšia */
+tr.priority-high2, table.list tbody tr.priority-high2:hover { background: #FFD3BF; }
 tr.priority-lowest td, tr.priority-low2 td { color: var(--previo-grey500); }
 
 table.progress td.closed { background: var(--previo-positive-light); }
