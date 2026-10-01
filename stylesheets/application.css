@@ -604,6 +604,25 @@ input[type="button"]:hover {
   outline: 2px solid var(--previo-primary-transparent);
 }
 
+/* Pole so štítkami (select2 — filter Tags, štítky na úlohe) — knižnica má vlastný štýl
+   s ostrými rohmi a iným rámikom; zjednotené s ostatnými poľami. Vnútorné vyhľadávacie
+   pole je input, takže by inak dostalo vlastný focus rámik vnútri rámika. */
+#content .select2-container--default .select2-selection--single,
+#content .select2-container--default .select2-selection--multiple {
+  border: 1px solid var(--previo-grey300);
+  border-radius: var(--previo-radius);
+  min-height: var(--previo-field-height);
+  box-sizing: border-box;
+}
+#content .select2-container--default.select2-container--focus .select2-selection--multiple,
+#content .select2-container--default.select2-container--open .select2-selection {
+  border-color: var(--previo-primary);
+  outline: 2px solid var(--previo-primary-transparent);
+}
+/* vnútorné políčko by si inak zobralo výšku polí (30 px) a s okrajmi by celok narástol na 36 */
+#content .select2-container .select2-search__field { min-height: 0; height: 24px; }
+#content .select2-container .select2-search__field:focus { outline: none; }
+
 /* --- Rozbalený zoznam selectov podľa DS — len v prehliadačoch
        s podporou `base-select` (Chromium); inde ostáva čistý native --- */
 @supports (appearance: base-select) {
